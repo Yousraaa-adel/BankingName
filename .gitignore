@@ -1,0 +1,49 @@
+# Ignore build results
+bin/
+obj/
+
+# User-specific files
+.vs/
+.idea/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# ASP.NET Core
+wwwroot/
+
+# Ignore compiled .NET binaries
+*.dll
+*.exe
+*.pdb
+*.cache
+
+# Ignore NuGet packages
+*.nupkg
+*.snupkg
+.nuget/
+
+# Ignore configuration files that should be private
+appsettings.Development.json
+appsettings.Production.json
+appsettings.Local.json
+secrets.json
+
+# Ignore logs
+*.log
+
+# Ignore build output from Visual Studio Code and other IDEs
+.vscode/
+.idea/
+
+# Ignore Rider IDE files
+.idea/
+
+# Ignore Azure Functions settings
+local.settings.json
+
+# Ignore dotnet generated files
+project.lock.json
+project.fragment.lock.json
