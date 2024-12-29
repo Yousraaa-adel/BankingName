@@ -9,7 +9,6 @@ This project is a **Banking System API** built with **ASP.NET Core**, **Entity F
 - **Withdrawal**: Withdraw funds from an account, with overdraft protection for checking accounts.
 - **Transfer**: Transfer funds between two accounts.
 - **Balance Inquiry**: Retrieve the current balance of an account, including currency formatting.
-- **Transaction Logging**: All operations are logged as transactions for future reference.
 - **Currency Handling**: Balance amounts are returned with a currency symbol (`$`), and amounts are formatted to two decimal places.
 
 ## Technologies Used
