@@ -43,7 +43,12 @@ namespace BankingSystem.Api.Mapping
                 .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.Amount))  // Map Amount
                 .ForMember(dest => dest.TransactionDate, opt => opt.MapFrom(src => src.TransactionDate))  // Map TransactionDate
                 .ForMember(dest => dest.TransactionTypeName, opt => opt.MapFrom(src => src.TransactionType.Name))
+                .ForMember(dest => dest.TargetAccountId, opt => opt.MapFrom(src => src.TargetAccountId))
                 .ReverseMap();  // Allow reverse mapping if needed
+
+            CreateMap<Account, BalanceDto>()
+            .ForMember(dest => dest.AccountNumber, opt => opt.MapFrom(src => src.Id)) // Map Id to AccountNumber
+            .ForMember(dest => dest.Balance, opt => opt.MapFrom(src => src.Balance));
         }
     }
 }

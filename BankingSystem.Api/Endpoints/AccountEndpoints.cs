@@ -113,23 +113,25 @@ public static class AccountEndpoints
     });
 
     // Get Balance Endpoint
-    app.MapGet("/api/accounts/balance", async ([FromBody] GetBalanceDto getBalanceDto, [FromServices] IAccountService accountService,
+    app.MapGet("/api/accounts/{id}/balance", async (int id, [FromServices] IAccountService accountService,
                                                   IMapper mapper) =>
     {
-      if (!Validator.TryValidateObject(getBalanceDto, new ValidationContext(getBalanceDto), null, true))
+      try
       {
-        return Results.BadRequest("Invalid input.");
+        // Call the service method for balance check
+        var balanceDto = await accountService.GetBalanceAsync(id);
+
+        if (balanceDto == null)
+        {
+          return Results.NotFound(new { Message = "Account not found." });
+        }
+
+        return Results.Ok(balanceDto);
       }
-
-      // Call the service method for balance check
-      var balance = await accountService.GetBalanceAsync(getBalanceDto.AccountId);
-
-      if (balance == null)
+      catch (Exception ex)
       {
-        return Results.NotFound("Account not found.");
+        return Results.BadRequest(new { Message = ex.Message });
       }
-
-      return Results.Ok(new { Balance = balance });
     });
 
   }

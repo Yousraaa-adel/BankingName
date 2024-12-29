@@ -3,9 +3,8 @@ POST http://localhost:5248/api/accounts
 Content-Type: application/json
 
 {
-    "AccountTypeId": 1,
-    "Balance": 1000.00,
-    "OverDraftLimit": 500.00
+    "AccountTypeId": 2,
+    "Balance": 1000.00
 }
 
 ###
@@ -24,8 +23,8 @@ POST http://localhost:5248/api/accounts/withdraw
 Content-Type: application/json
 
 {
-    "accountId": "1",
-    "amount": 200
+    "accountId": "5",
+    "amount": 1000
 }
 ###
 // Transfer
@@ -35,14 +34,9 @@ Content-Type: application/json
 {
     "accountId": 2,
     "TargetAccountId": 1,
-    "amount": 400
+    "amount": 500
 }
 
 ###
 // Get balance
-GET http://localhost:5248/api/accounts/balance
-Content-Type: application/json
-
-{
-    "accountId": 1
-}
+GET http://localhost:5248/api/accounts/4/balance

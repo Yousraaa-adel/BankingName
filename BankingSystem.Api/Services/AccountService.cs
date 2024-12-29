@@ -42,7 +42,6 @@ public class AccountService : IAccountService
     return account;
   }
 
-
   public async Task<TransactionDto> DepositAsync(int accountId, decimal amount)
   {
     var account = await _DbContext.Accounts.Include(acc => acc.AccountType)
@@ -73,6 +72,7 @@ public class AccountService : IAccountService
     // Map the Transaction entity to TransactionDto
     var transactionDto = _mapper.Map<TransactionDto>(transaction);
     transactionDto.TransactionDate = transaction.TransactionDate.ToString("dd-MM-yyyy HH:mm");  // Format the date
+    transactionDto.Amount = $"${transaction.Amount:F2}"; // Format amount to include currency
 
     return transactionDto;
   }
@@ -139,7 +139,7 @@ public class AccountService : IAccountService
     // Map the Transaction entity to TransactionDto
     var transactionDto = _mapper.Map<TransactionDto>(transaction);
     transactionDto.TransactionDate = transaction.TransactionDate.ToString("dd-MM-yyyy HH:mm");  // Format the date
-
+    transactionDto.Amount = $"${transaction.Amount:F2}"; // Format amount to include currency
 
     return transactionDto;
   }
@@ -195,11 +195,12 @@ public class AccountService : IAccountService
     // Map the Transaction entities to TransactionDto
     var transactionDto = _mapper.Map<TransactionDto>(transferTransaction);
     transactionDto.TransactionDate = transferTransaction.TransactionDate.ToString("dd-MM-yyyy HH:mm");  // Format the date
+    transactionDto.Amount = $"${transferTransaction.Amount:F2}"; // Format amount to include currency
 
     return transactionDto;
   }
 
-  public async Task<decimal> GetBalanceAsync(int accountId)
+  public async Task<BalanceDto> GetBalanceAsync(int accountId)
   {
     var account = await _DbContext.Accounts
                         .FirstOrDefaultAsync(acc => acc.Id == accountId);
@@ -207,7 +208,14 @@ public class AccountService : IAccountService
     if (account is null)
       throw new Exception("Account not found");
 
-    return account.Balance;
+    // Map the Account entity to BalanceDto
+    var balanceDto = new BalanceDto
+    {
+      AccountNumber = account.Id,
+      Balance = $"${account.Balance:F2}" // Formats balance with currency and 2 decimal places
+    };
+
+    return balanceDto;
   }
 
 }
