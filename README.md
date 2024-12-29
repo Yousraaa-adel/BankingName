@@ -10,6 +10,7 @@ This project is a **Banking System API** built with **ASP.NET Core**, **Entity F
 - **Transfer**: Transfer funds between two accounts.
 - **Balance Inquiry**: Retrieve the current balance of an account, including currency formatting.
 - **Currency Handling**: Balance amounts are returned with a currency symbol (`$`), and amounts are formatted to two decimal places.
+- **Savings Interest Calculation**: The system automatically calculates interest for Savings accounts based on the account balance and a predefined interest rate. The interest is applied periodically, ensuring accurate and up-to-date calculations for users.
 
 ## Technologies Used
 
@@ -87,6 +88,24 @@ dotnet restore
    - You can use a tool like [DB Browser for SQLite](https://sqlitebrowser.org/) to open the `BankingSystem.db` file and verify the structure and data.
 
 The Banking System API provides a set of RESTful endpoints to manage accounts, perform transactions, and retrieve account information, including balances and transaction history.
+
+## API Documentation
+
+This project uses Swagger to generate interactive API documentation. Swagger provides a user-friendly interface to explore the available API endpoints.
+
+### To access the Swagger UI:
+
+1. Start the API by running:
+   ```bash
+   dotnet run
+   ```
+2. Open your browser and navigate to: http://localhost:5000/swagger
+
+Swagger will display the documentation for the available API routes, request parameters, and responses.
+
+### Notes:
+
+- Ensure that the API is running before attempting to access the Swagger UI.
 
 ## API Endpoints
 

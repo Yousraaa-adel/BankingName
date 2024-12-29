@@ -45,10 +45,34 @@ public class AccountService : IAccountService
   public async Task<TransactionDto> DepositAsync(int accountId, decimal amount)
   {
     var account = await _DbContext.Accounts.Include(acc => acc.AccountType)
+                                          .Include(acc => acc.AccountType)
                                         .FirstOrDefaultAsync(acc => acc.Id == accountId);
 
     if (account is null)
       throw new Exception("Account not found");
+
+    // Fixed annual interest rate
+    const decimal fixedInterestRate = 0.18m; // 18%
+
+    // Calculate interest if the account is a SavingsAccount
+    if (account.AccountType.Name == "Savings")
+    {
+      var now = DateTime.Now;
+      if (account.LastInterestCalculated.HasValue)
+      {
+        // Calculate elapsed time in years since the last interest calculation
+        var elapsedTime = (now - account.LastInterestCalculated.Value).TotalDays / 365;
+        if (elapsedTime > 0)
+        {
+          // Apply interest to the balance using the fixed rate
+          var interest = account.Balance * fixedInterestRate * (decimal)elapsedTime;
+          account.Balance += interest;
+        }
+      }
+
+      // Update LastInterestCalculated to now
+      account.LastInterestCalculated = now;
+    }
 
     account.Balance += amount;
 
