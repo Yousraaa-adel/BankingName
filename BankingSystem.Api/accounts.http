@@ -1,1 +1,43 @@
-GET http://localhost:5248/
+POST http://localhost:5248/api/accounts
+Content-Type: application/json
+
+{
+    "AccountTypeId": 1,
+    "Balance": 1000.00,
+    "OverDraftLimit": 500.00
+}
+
+###
+POST http://localhost:5248/api/accounts/deposit
+Content-Type: application/json
+
+{
+    "accountId": "4",
+    "amount": 300
+}
+
+###
+POST http://localhost:5248/api/accounts/withdraw
+Content-Type: application/json
+
+{
+    "accountId": "4",
+    "amount": 300
+}
+###
+POST http://localhost:5248/api/accounts/transfer
+Content-Type: application/json
+
+{
+    "accountId": 1,
+    "TargetAccountId": 2,
+    "amount": 300
+}
+
+###
+GET http://localhost:5248/api/accounts/balance
+Content-Type: application/json
+
+{
+    "accountId": 1
+}

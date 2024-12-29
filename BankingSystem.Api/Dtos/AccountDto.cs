@@ -1,6 +1,9 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace BankingSystem.Api.Dtos;
 
 public record class AccountDto(
-  int Id,
-  decimal Balance
+  [Required] int AccountTypeId,
+  [Required] decimal Balance,
+  decimal? OverDraftLimit
 );

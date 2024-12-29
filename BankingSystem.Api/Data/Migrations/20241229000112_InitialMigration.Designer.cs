@@ -3,16 +3,19 @@ using System;
 using BankingSystem.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace BankingSystem.Api.Migrations
+namespace BankingSystem.Api.Data.Migrations
 {
     [DbContext(typeof(BankingSystemContext))]
-    partial class BankingSystemContextModelSnapshot : ModelSnapshot
+    [Migration("20241229000112_InitialMigration")]
+    partial class InitialMigration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.0");
@@ -83,22 +86,22 @@ namespace BankingSystem.Api.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("TargetAccountId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<DateTime>("TransactionDate")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("TransactionTypeId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("TransferToAccountId")
-                        .HasColumnType("INTEGER");
-
                     b.HasKey("Id");
 
                     b.HasIndex("AccountId");
 
-                    b.HasIndex("TransactionTypeId");
+                    b.HasIndex("TargetAccountId");
 
-                    b.HasIndex("TransferToAccountId");
+                    b.HasIndex("TransactionTypeId");
 
                     b.ToTable("Transactions");
                 });
@@ -157,21 +160,21 @@ namespace BankingSystem.Api.Migrations
                         .WithMany()
                         .HasForeignKey("AccountId");
 
+                    b.HasOne("BankingSystem.Api.Entities.Account", "TargetAccount")
+                        .WithMany()
+                        .HasForeignKey("TargetAccountId");
+
                     b.HasOne("BankingSystem.Api.Entities.TransactionType", "TransactionType")
                         .WithMany()
                         .HasForeignKey("TransactionTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("BankingSystem.Api.Entities.Account", "TransferToAccount")
-                        .WithMany()
-                        .HasForeignKey("TransferToAccountId");
-
                     b.Navigation("Account");
 
-                    b.Navigation("TransactionType");
+                    b.Navigation("TargetAccount");
 
-                    b.Navigation("TransferToAccount");
+                    b.Navigation("TransactionType");
                 });
 #pragma warning restore 612, 618
         }

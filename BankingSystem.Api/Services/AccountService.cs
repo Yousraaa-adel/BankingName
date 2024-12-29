@@ -1,5 +1,6 @@
 using AutoMapper;
 using BankingSystem.Api.Data;
+using BankingSystem.Api.Dtos;
 using BankingSystem.Api.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,20 +15,46 @@ public class AccountService : IAccountService
     _DbContext = DbContext;
   }
 
+  public async Task<Account> CreateAccountAsync(AccountDto accountDto)
+  {
+    // Validate account type exists
+    var accountType = await _DbContext.AccountTypes
+        .FirstOrDefaultAsync(a => a.Id == accountDto.AccountTypeId);
+
+    if (accountType == null)
+    {
+      throw new ArgumentException($"Account Type with Id {accountDto.AccountTypeId} does not exist.");
+    }
+
+    // Create and save account
+    var account = new Account
+    {
+      AccountTypeId = accountDto.AccountTypeId,
+      Balance = accountDto.Balance,
+      OverDraftLimit = accountDto.OverDraftLimit
+    };
+
+    _DbContext.Accounts.Add(account);
+    await _DbContext.SaveChangesAsync();
+
+    return account;
+  }
+
+
   public async Task DepositAsync(int accountId, decimal amount)
   {
     var account = await _DbContext.Accounts.FindAsync(accountId);
 
     if (account is null)
       throw new Exception("Account not found");
-    
-    account.Balance =+ amount;
+
+    account.Balance += amount;
 
     var transactionType = await _DbContext.TransactionTypes
                           .Where(transactionType => transactionType.Name == "Deposit")
                           .Select(transactionType => transactionType.Id)
                           .FirstOrDefaultAsync();
-    
+
     if (transactionType == 0)
       throw new Exception("Transaction type not found");
 
@@ -56,12 +83,12 @@ public class AccountService : IAccountService
                                           .FirstOrDefaultAsync(t => t.Name == "Withdraw");
 
     if (transactionType is null)
-        throw new Exception("Transaction type for withdraw not found");
+      throw new Exception("Transaction type for withdraw not found");
 
     // Set overdraft limit to 500 for Checking accounts if not set
     if (account.AccountType.Name == "Checking" && account.OverDraftLimit == null)
     {
-        account.OverDraftLimit = 500;
+      account.OverDraftLimit = 500;
     }
 
     // Save changes to the database
@@ -70,19 +97,19 @@ public class AccountService : IAccountService
     // For Checking accounts, check overdraft limit (500)
     if (account.AccountType.Name == "Checking")
     {
-        if (amount > account.Balance + (account.OverDraftLimit ?? 0))
-        {
-            throw new Exception("Insufficient funds for this withdrawal including overdraft");
-        }
+      if (amount > account.Balance + (account.OverDraftLimit ?? 0))
+      {
+        throw new Exception("Insufficient funds for this withdrawal including overdraft");
+      }
 
     }
     else if (account.AccountType.Name == "Savings")
     {
-        // For Savings accounts, just check the balance
-        if (amount > account.Balance)
-        {
-            throw new Exception("Insufficient funds in Savings account");
-        }
+      // For Savings accounts, just check the balance
+      if (amount > account.Balance)
+      {
+        throw new Exception("Insufficient funds in Savings account");
+      }
     }
 
     // Deduct the amount from the balance
@@ -92,10 +119,10 @@ public class AccountService : IAccountService
     // Create a new transaction record
     var transaction = new Transaction
     {
-        TransactionTypeId = transactionType.Id,  // Use the dynamically fetched TransactionTypeId
-        Amount = amount,
-        AccountId = accountId,
-        TransactionDate = DateTime.Now
+      TransactionTypeId = transactionType.Id,  // Use the dynamically fetched TransactionTypeId
+      Amount = amount,
+      AccountId = accountId,
+      TransactionDate = DateTime.Now
     };
 
     // Add the transaction record to the DbContext and save changes
@@ -114,7 +141,7 @@ public class AccountService : IAccountService
                                               .FirstOrDefaultAsync(acc => acc.Id == targetAccountId);
 
     if (SourceAccount is null || targetAccount is null)
-        throw new Exception("One or both accounts not found");
+      throw new Exception("One or both accounts not found");
 
     // Get TransactionTypeIds for "Withdraw" and "Deposit"
     var withdrawTransactionType = await _DbContext.TransactionTypes
@@ -122,16 +149,16 @@ public class AccountService : IAccountService
     var depositTransactionType = await _DbContext.TransactionTypes
                                                   .FirstOrDefaultAsync(t => t.Name == "Deposit");
 
-     // Check if the source account has sufficient balance (same logic as WithdrawAsync)
+    // Check if the source account has sufficient balance (same logic as WithdrawAsync)
     if (SourceAccount.AccountType.Name == "Checking")
     {
-        if (amount > SourceAccount.Balance + (SourceAccount.OverDraftLimit ?? 0))
-            throw new Exception("Insufficient funds for the transfer");
+      if (amount > SourceAccount.Balance + (SourceAccount.OverDraftLimit ?? 0))
+        throw new Exception("Insufficient funds for the transfer");
     }
     else if (SourceAccount.AccountType.Name == "Savings")
     {
-        if (amount > SourceAccount.Balance)
-            throw new Exception("Insufficient funds in Savings account");
+      if (amount > SourceAccount.Balance)
+        throw new Exception("Insufficient funds in Savings account");
     }
 
     // Deduct the amount from the 'source' account
@@ -143,19 +170,19 @@ public class AccountService : IAccountService
     // Create a transaction record for the 'source' account (withdrawal)
     var withdrawalTransaction = new Transaction
     {
-        TransactionTypeId = withdrawTransactionType.Id,
-        Amount = amount,
-        AccountId = sourceAccountId,
-        TransactionDate = DateTime.Now
+      TransactionTypeId = withdrawTransactionType.Id,
+      Amount = amount,
+      AccountId = sourceAccountId,
+      TransactionDate = DateTime.Now
     };
 
     // Create a transaction record for the 'to' account (deposit)
     var depositTransaction = new Transaction
     {
-        TransactionTypeId = depositTransactionType.Id,
-        Amount = amount,
-        AccountId = targetAccountId,
-        TransactionDate = DateTime.Now
+      TransactionTypeId = depositTransactionType.Id,
+      Amount = amount,
+      AccountId = targetAccountId,
+      TransactionDate = DateTime.Now
     };
 
     // Save changes to the database

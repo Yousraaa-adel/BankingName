@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
 
-namespace BankingSystem.Api.Migrations
+namespace BankingSystem.Api.Data.Migrations
 {
     /// <inheritdoc />
     public partial class InitialMigration : Migration
@@ -70,7 +70,7 @@ namespace BankingSystem.Api.Migrations
                     TransactionTypeId = table.Column<int>(type: "INTEGER", nullable: false),
                     Amount = table.Column<decimal>(type: "TEXT", nullable: false),
                     AccountId = table.Column<int>(type: "INTEGER", nullable: true),
-                    TransferToAccountId = table.Column<int>(type: "INTEGER", nullable: true),
+                    TargetAccountId = table.Column<int>(type: "INTEGER", nullable: true),
                     TransactionDate = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
@@ -82,8 +82,8 @@ namespace BankingSystem.Api.Migrations
                         principalTable: "Accounts",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_Transactions_Accounts_TransferToAccountId",
-                        column: x => x.TransferToAccountId,
+                        name: "FK_Transactions_Accounts_TargetAccountId",
+                        column: x => x.TargetAccountId,
                         principalTable: "Accounts",
                         principalColumn: "Id");
                     table.ForeignKey(
@@ -125,14 +125,14 @@ namespace BankingSystem.Api.Migrations
                 column: "AccountId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Transactions_TargetAccountId",
+                table: "Transactions",
+                column: "TargetAccountId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Transactions_TransactionTypeId",
                 table: "Transactions",
                 column: "TransactionTypeId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Transactions_TransferToAccountId",
-                table: "Transactions",
-                column: "TransferToAccountId");
         }
 
         /// <inheritdoc />
