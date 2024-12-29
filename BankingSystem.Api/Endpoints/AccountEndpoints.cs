@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using AutoMapper;
 using BankingSystem.Api.Data;
 using BankingSystem.Api.Dtos;
 using BankingSystem.Api.Services;
@@ -30,7 +31,8 @@ public static class AccountEndpoints
 
 
     // Deposit Endpoint
-    app.MapPost("/api/accounts/deposit", async (DepositDto depositDto, IAccountService accountService) =>
+    app.MapPost("/api/accounts/deposit", async (DepositDto depositDto, IAccountService accountService,
+                                                  IMapper mapper) =>
     {
       // Validate the DTO
       if (!Validator.TryValidateObject(depositDto, new ValidationContext(depositDto), null, true))
@@ -38,14 +40,27 @@ public static class AccountEndpoints
         return Results.BadRequest("Invalid input.");
       }
 
-      // Call the service method for deposit
-      await accountService.DepositAsync(depositDto.AccountId, depositDto.Amount);
+      try
+      {
+        // Call the service method for deposit
+        var transactionDto = await accountService.DepositAsync(depositDto.AccountId, depositDto.Amount);
 
-      return Results.Ok("Deposit successful.");
+        return Results.Ok(new
+        {
+          Message = "Deposit successful.",
+          Data = transactionDto
+        });
+      }
+      catch (Exception ex)
+      {
+        // Return a structured error response when an exception is caught
+        return Results.BadRequest(new { message = ex.Message });
+      }
     });
 
     // Withdraw Endpoint
-    app.MapPost("/api/accounts/withdraw", async (WithdrawDto withdrawDto, IAccountService accountService) =>
+    app.MapPost("/api/accounts/withdraw", async (WithdrawDto withdrawDto, IAccountService accountService,
+                                                  IMapper mapper) =>
     {
       // Validate the DTO
       if (!Validator.TryValidateObject(withdrawDto, new ValidationContext(withdrawDto), null, true))
@@ -53,26 +68,53 @@ public static class AccountEndpoints
         return Results.BadRequest("Invalid input.");
       }
 
-      // Call the service method for withdrawal
-      await accountService.WithdrawAsync(withdrawDto.AccountId, withdrawDto.Amount);
+      try
+      {
+        // Call the service method for withdrawal
+        var transactionDto = await accountService.WithdrawAsync(withdrawDto.AccountId, withdrawDto.Amount);
 
-      return Results.Ok("Withdrawal successful.");
+        return Results.Ok(new
+        {
+          Message = "Withdrawal successful.",
+          Data = transactionDto
+        });
+      }
+      catch (Exception ex)
+      {
+        // Return a structured error response when an exception is caught
+        return Results.BadRequest(new { message = ex.Message });
+      }
     });
 
     // Transfer Endpoint
-    app.MapPost("/api/accounts/transfer", async (TransferDto transferDto, IAccountService accountService) =>
+    app.MapPost("/api/accounts/transfer", async (TransferDto transferDto, IAccountService accountService,
+                                                    IMapper mapper) =>
     {
       if (!Validator.TryValidateObject(transferDto, new ValidationContext(transferDto), null, true))
       {
         return Results.BadRequest("Invalid input.");
       }
 
-      await accountService.TransferAsync(transferDto.AccountId, transferDto.TargetAccountId, transferDto.Amount);
-      return Results.Ok(new { Message = "Transfer successful.", Data = transferDto });
+      try
+      {
+        var transactionDto = await accountService.TransferAsync(transferDto.AccountId, transferDto.TargetAccountId, transferDto.Amount);
+
+        return Results.Ok(new
+        {
+          Message = "Transfer successful.",
+          Data = transactionDto
+        });
+      }
+      catch (Exception ex)
+      {
+        // Return a structured error response when an exception is caught
+        return Results.BadRequest(new { message = ex.Message });
+      }
     });
 
     // Get Balance Endpoint
-    app.MapGet("/api/accounts/balance", async ([FromBody] GetBalanceDto getBalanceDto, [FromServices] IAccountService accountService) =>
+    app.MapGet("/api/accounts/balance", async ([FromBody] GetBalanceDto getBalanceDto, [FromServices] IAccountService accountService,
+                                                  IMapper mapper) =>
     {
       if (!Validator.TryValidateObject(getBalanceDto, new ValidationContext(getBalanceDto), null, true))
       {

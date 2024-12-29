@@ -9,10 +9,12 @@ namespace BankingSystem.Api.Services;
 public class AccountService : IAccountService
 {
   private readonly BankingSystemContext _DbContext;
+  private readonly IMapper _mapper;
 
-  public AccountService(BankingSystemContext DbContext)
+  public AccountService(BankingSystemContext DbContext, IMapper mapper)
   {
     _DbContext = DbContext;
+    _mapper = mapper;
   }
 
   public async Task<Account> CreateAccountAsync(AccountDto accountDto)
@@ -41,9 +43,10 @@ public class AccountService : IAccountService
   }
 
 
-  public async Task DepositAsync(int accountId, decimal amount)
+  public async Task<TransactionDto> DepositAsync(int accountId, decimal amount)
   {
-    var account = await _DbContext.Accounts.FindAsync(accountId);
+    var account = await _DbContext.Accounts.Include(acc => acc.AccountType)
+                                        .FirstOrDefaultAsync(acc => acc.Id == accountId);
 
     if (account is null)
       throw new Exception("Account not found");
@@ -51,26 +54,30 @@ public class AccountService : IAccountService
     account.Balance += amount;
 
     var transactionType = await _DbContext.TransactionTypes
-                          .Where(transactionType => transactionType.Name == "Deposit")
-                          .Select(transactionType => transactionType.Id)
-                          .FirstOrDefaultAsync();
+                                          .FirstOrDefaultAsync(t => t.Name == "Deposit");
 
-    if (transactionType == 0)
+    if (transactionType is null)
       throw new Exception("Transaction type not found");
 
     var transaction = new Transaction
     {
       AccountId = accountId,
-      TransactionTypeId = transactionType,
+      TransactionTypeId = transactionType.Id,
       Amount = amount,
       TransactionDate = DateTime.UtcNow
     };
 
     _DbContext.Transactions.Add(transaction);
     await _DbContext.SaveChangesAsync();
+
+    // Map the Transaction entity to TransactionDto
+    var transactionDto = _mapper.Map<TransactionDto>(transaction);
+    transactionDto.TransactionDate = transaction.TransactionDate.ToString("dd-MM-yyyy HH:mm");  // Format the date
+
+    return transactionDto;
   }
 
-  public async Task WithdrawAsync(int accountId, decimal amount)
+  public async Task<TransactionDto> WithdrawAsync(int accountId, decimal amount)
   {
     var account = await _DbContext.Accounts.Include(acc => acc.AccountType)
                                         .FirstOrDefaultAsync(acc => acc.Id == accountId);
@@ -129,9 +136,15 @@ public class AccountService : IAccountService
     await _DbContext.Transactions.AddAsync(transaction);
     await _DbContext.SaveChangesAsync();
 
+    // Map the Transaction entity to TransactionDto
+    var transactionDto = _mapper.Map<TransactionDto>(transaction);
+    transactionDto.TransactionDate = transaction.TransactionDate.ToString("dd-MM-yyyy HH:mm");  // Format the date
+
+
+    return transactionDto;
   }
 
-  public async Task TransferAsync(int sourceAccountId, int targetAccountId,
+  public async Task<TransactionDto> TransferAsync(int sourceAccountId, int targetAccountId,
                                     decimal amount)
   {
     var SourceAccount = await _DbContext.Accounts.Include(acc => acc.AccountType)
@@ -143,11 +156,9 @@ public class AccountService : IAccountService
     if (SourceAccount is null || targetAccount is null)
       throw new Exception("One or both accounts not found");
 
-    // Get TransactionTypeIds for "Withdraw" and "Deposit"
-    var withdrawTransactionType = await _DbContext.TransactionTypes
-                                                  .FirstOrDefaultAsync(t => t.Name == "Withdraw");
-    var depositTransactionType = await _DbContext.TransactionTypes
-                                                  .FirstOrDefaultAsync(t => t.Name == "Deposit");
+    // Get the Transfer TransactionType
+    var transferTransactionType = await _DbContext.TransactionTypes
+                                  .FirstOrDefaultAsync(t => t.Name == "Transfer");
 
     // Check if the source account has sufficient balance (same logic as WithdrawAsync)
     if (SourceAccount.AccountType.Name == "Checking")
@@ -167,28 +178,25 @@ public class AccountService : IAccountService
     // Credit the 'to' account
     targetAccount.Balance += amount;
 
-    // Create a transaction record for the 'source' account (withdrawal)
-    var withdrawalTransaction = new Transaction
+    // Create a single transaction record for the transfer
+    var transferTransaction = new Transaction
     {
-      TransactionTypeId = withdrawTransactionType.Id,
+      TransactionTypeId = transferTransactionType.Id,  // Use the 'Transfer' transaction type
       Amount = amount,
       AccountId = sourceAccountId,
-      TransactionDate = DateTime.Now
-    };
-
-    // Create a transaction record for the 'to' account (deposit)
-    var depositTransaction = new Transaction
-    {
-      TransactionTypeId = depositTransactionType.Id,
-      Amount = amount,
-      AccountId = targetAccountId,
+      TargetAccountId = targetAccountId,  // Include the target account
       TransactionDate = DateTime.Now
     };
 
     // Save changes to the database
-    await _DbContext.Transactions.AddAsync(withdrawalTransaction);
-    await _DbContext.Transactions.AddAsync(depositTransaction);
+    _DbContext.Transactions.Add(transferTransaction);
     await _DbContext.SaveChangesAsync();
+
+    // Map the Transaction entities to TransactionDto
+    var transactionDto = _mapper.Map<TransactionDto>(transferTransaction);
+    transactionDto.TransactionDate = transferTransaction.TransactionDate.ToString("dd-MM-yyyy HH:mm");  // Format the date
+
+    return transactionDto;
   }
 
   public async Task<decimal> GetBalanceAsync(int accountId)

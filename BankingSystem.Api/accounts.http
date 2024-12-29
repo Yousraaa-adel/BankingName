@@ -1,3 +1,4 @@
+// Create account
 POST http://localhost:5248/api/accounts
 Content-Type: application/json
 
@@ -8,33 +9,37 @@ Content-Type: application/json
 }
 
 ###
+// Deposit
 POST http://localhost:5248/api/accounts/deposit
 Content-Type: application/json
 
 {
-    "accountId": "4",
-    "amount": 300
+    "accountId": "2",
+    "amount": 10.10
 }
 
 ###
+// Withdraw
 POST http://localhost:5248/api/accounts/withdraw
 Content-Type: application/json
 
 {
-    "accountId": "4",
-    "amount": 300
+    "accountId": "1",
+    "amount": 200
 }
 ###
+// Transfer
 POST http://localhost:5248/api/accounts/transfer
 Content-Type: application/json
 
 {
-    "accountId": 1,
-    "TargetAccountId": 2,
-    "amount": 300
+    "accountId": 2,
+    "TargetAccountId": 1,
+    "amount": 400
 }
 
 ###
+// Get balance
 GET http://localhost:5248/api/accounts/balance
 Content-Type: application/json
 
